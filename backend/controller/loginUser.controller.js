@@ -2,7 +2,17 @@
 
 import { findUserByEmail } from "../dao/user.dao.js";
 import { comparePassword } from "../services/bcrypt.service.js";
-import { generateAccessToken } from "../services/jwt.service.js";
+import {
+    createTokenPayload,
+    generateAccessToken,
+    generateRefreshToken,
+} from "../services/jwt.service.js";
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.COOKIE_SECURE === "true",
+    sameSite: "lax",
+};
 
 export const loginUserController = async (req, res) => {
     try {
@@ -38,12 +48,9 @@ export const loginUserController = async (req, res) => {
             });
         }
 
-        // Generate JWT
-        const token = generateAccessToken({
-            userId: user._id,
-            email: user.email,
-            username: user.username
-        });
+        const payload = createTokenPayload(user);
+        const token = generateAccessToken(payload);
+        const refreshToken = generateRefreshToken(payload);
 
         // Send response
         return res.status(200)
@@ -51,10 +58,16 @@ export const loginUserController = async (req, res) => {
                 "accessToken",
                 token,
                 {
-                    httpOnly: true,
-                    secure:false,
-                    sameSite: "lax",
-                    maxAge: 15 * 60 * 1000,
+                    ...cookieOptions,
+                    maxAge: 10 * 1000,
+                }
+            )
+            .cookie(
+                "refreshToken",
+                refreshToken,
+                {
+                    ...cookieOptions,
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
                 }
             )
             .json({

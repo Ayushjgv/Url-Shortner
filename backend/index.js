@@ -15,13 +15,14 @@ import { redirectFromShortUrl } from "./controller/shortUrl.controller.js";
 import errorHandler from "./middleware/errorHandler.js";
 import registerUser from "./routes/registerUser.route.js"
 import loginUser from "./routes/loginUser.route.js";
+import refreshToken from "./routes/refreshToken.route.js";
 
 
-dotenv.config("./.env");
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 app.use(express.json());
 app.use(cookieParser());
@@ -33,13 +34,13 @@ app.use(
     credentials: true,
   })
 );
-app.use(errorHandler);
 
 
 app.use("/api/dashboard",userDashboardRoute);
 app.use("/api/create",shortUrlRoute);
 app.use("/api/register",registerUser);
 app.use("/api/login",loginUser);
+app.use("/api/refresh-token",refreshToken);
 
 app.get("/:shortUrl",redirectFromShortUrl);
 
