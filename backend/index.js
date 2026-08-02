@@ -16,6 +16,8 @@ import errorHandler from "./middleware/errorHandler.js";
 import registerUser from "./routes/registerUser.route.js"
 import loginUser from "./routes/loginUser.route.js";
 import refreshToken from "./routes/refreshToken.route.js";
+import verifyUser from "./routes/auth.route.js";
+import getUserDetails from "./routes/getUserDetails.route.js";
 
 
 const app = express();
@@ -41,6 +43,8 @@ app.use("/api/create",shortUrlRoute);
 app.use("/api/register",registerUser);
 app.use("/api/login",loginUser);
 app.use("/api/refresh-token",refreshToken);
+app.use("/api/verifyUser",verifyUser);
+app.use("/api/getUserDetails",getUserDetails);
 
 app.get("/:shortUrl",redirectFromShortUrl);
 

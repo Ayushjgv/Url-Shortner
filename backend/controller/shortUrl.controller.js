@@ -1,5 +1,5 @@
 import { getShortUrl } from "../dao/shortUrl.js";
-import { createShortUrlWithoutUserService } from "../services/shortUrl.service.js";
+import { createShortUrlWithUserService } from "../services/shortUrl.service.js";
 
 export const createShortUrl = async (req, res) => {
     const { url } = req.body;
@@ -7,7 +7,7 @@ export const createShortUrl = async (req, res) => {
         return res.status(400).send("A valid url is required");
     }
 
-    const shortUrl = await createShortUrlWithoutUserService(url);
+    const shortUrl = await createShortUrlWithUserService(url,req.user.userId);
     const appUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}/`;
     const baseUrl = appUrl.endsWith("/") ? appUrl : `${appUrl}/`;
     res.send(baseUrl + shortUrl);

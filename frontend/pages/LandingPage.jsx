@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import heroImg from "../src/assets/hero.png";
+import api from "../utils/axios";
 import "./landing.css";
-
-const API_ENDPOINT = "/api/create";
+import { User, LayoutDashboard, Settings, LogOut} from "lucide-react";
 
 export default function LandingPage() {
   const [url, setUrl] = useState("");
@@ -10,6 +11,37 @@ export default function LandingPage() {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [isAuthenticated, setisAuthenticated] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  const navigate = useNavigate();
+
+  useEffect(()=>{
+    const checkAuth = async ()=>{
+      try{
+        await api.get("/verifyUser");
+        setisAuthenticated(true);
+      }catch(error){
+        console.log(error);
+        setisAuthenticated(false);
+      }
+    }
+    checkAuth();
+  },[]);
+
+  const ensureAuthenticated = async () => {
+    if (isAuthenticated === true) return true;
+
+    try {
+      await api.get("/verifyUser");
+      setisAuthenticated(true);
+      return true;
+    } catch (error) {
+      console.log(error);
+      setisAuthenticated(false);
+      return false;
+    }
+  };
 
   const displayHost = useMemo(() => {
     if (!shortUrl) return "short.link";
@@ -32,27 +64,22 @@ export default function LandingPage() {
       return;
     }
 
+    const authenticated = await ensureAuthenticated();
+
+    if (!authenticated) {
+      navigate("/login");
+      return;
+    }
+
     setStatus("loading");
     setMessage("Creating your short link...");
     setShortUrl("");
     setCopied(false);
 
     try {
-      const response = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: trimmedUrl }),
-      });
+      const response = await api.post("/create", { url: trimmedUrl});
 
-      const text = await response.text();
-
-      if (!response.ok) {
-        throw new Error(text || "The backend could not create a short link.");
-      }
-
-      setShortUrl(text);
+      setShortUrl(response.data);
       setStatus("success");
       setMessage("Your short link is ready.");
     } catch (error) {
@@ -88,12 +115,43 @@ export default function LandingPage() {
           <a href="#footer">Support</a>
         </nav>
 
-        <button className="user-button">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 12.25a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5Z" />
-            <path d="M4.75 20.25c.7-3.15 3.6-5.5 7.25-5.5s6.55 2.35 7.25 5.5" />
-          </svg>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setOpen((prev) => !prev)}
+            className="rounded-full p-2 hover:bg-gray-200 transition"
+          >
+            <User size={22} />
+          </button>
+
+          {open && (
+            <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white shadow-lg z-50">
+              <button className="flex w-full items-center gap-3 px-4 py-3 bg-white hover:bg-gray-100" onClick={() => navigate("/dashboard")}>
+                <LayoutDashboard size={18} />
+                Dashboard
+              </button>
+
+              <button className="flex w-full items-center gap-3 px-4 py-3 hover:bg-gray-100">
+                <Settings size={18} />
+                Settings
+              </button>
+
+              <hr />
+
+              {isAuthenticated && (
+                <button className="flex w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50">
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              )}
+              {(!isAuthenticated && (
+                <button className="flex w-full items-center gap-3 px-4 py-3 text-green-600 hover:bg-green-50" onClick={() => navigate("/login")}>
+                  <LogOut size={18} />
+                  Login
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="app-shell">
