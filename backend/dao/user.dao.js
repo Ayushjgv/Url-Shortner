@@ -16,3 +16,7 @@ export const createUser = async (userData) => {
     const user = new User(userData);
     return await user.save();
 };
+
+export const updatePasswordDAO = async (email, hashedPassword) => {
+    return await User.findOneAndUpdate({ email }, { password: hashedPassword });
+};

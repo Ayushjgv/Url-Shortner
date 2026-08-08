@@ -18,6 +18,8 @@ import loginUser from "./routes/loginUser.route.js";
 import refreshToken from "./routes/refreshToken.route.js";
 import verifyUser from "./routes/auth.route.js";
 import getUserDetails from "./routes/getUserDetails.route.js";
+import logoutUser from "./routes/logout.routes.js";
+import resetPassword from "./routes/resetPassword.route.js";
 
 
 const app = express();
@@ -38,15 +40,17 @@ app.use(
 );
 
 
-app.use("/api/dashboard",userDashboardRoute);
-app.use("/api/create",shortUrlRoute);
-app.use("/api/register",registerUser);
-app.use("/api/login",loginUser);
-app.use("/api/refresh-token",refreshToken);
-app.use("/api/verifyUser",verifyUser);
-app.use("/api/getUserDetails",getUserDetails);
+app.use("/api/dashboard", userDashboardRoute);
+app.use("/api/create", shortUrlRoute);
+app.use("/api/register", registerUser);
+app.use("/api/login", loginUser);
+app.use("/api/refresh-token", refreshToken);
+app.use("/api/verifyUser", verifyUser);
+app.use("/api/getUserDetails", getUserDetails);
+app.use("/api/logout", logoutUser);
+app.use("/api/reset-password", resetPassword);
 
-app.get("/:shortUrl",redirectFromShortUrl);
+app.get("/:shortUrl", redirectFromShortUrl);
 
 
 app.use(errorHandler);

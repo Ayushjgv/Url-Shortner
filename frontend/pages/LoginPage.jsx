@@ -20,10 +20,10 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    try {  
-      const res = await api.post("/login",formData);
+    try {
+      const res = await api.post("/login", formData);
       console.log(res.data);
       setError("");
       navigate("/");
@@ -31,7 +31,7 @@ const Login = () => {
       setError(error.message);
       console.log(error);
     }
-    
+
   };
 
   return (
@@ -90,10 +90,17 @@ const Login = () => {
             Login
           </button>
         </form>
-        
+
         <div className="text-red-800 flex items-center justify-center">
           {Error}
         </div>
+
+        <p>
+          Forgot Password?{" "}
+          <a href="/reset-password" className="text-blue-600 hover:underline">
+            Reset Password
+          </a>
+        </p>
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don't have an account?{" "}

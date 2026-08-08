@@ -73,7 +73,6 @@ export const loginUserController = async (req, res) => {
             .json({
                 success: true,
                 message: "Login successful.",
-                token:token,
                 user: {
                     id: user._id,
                     username: user.username,

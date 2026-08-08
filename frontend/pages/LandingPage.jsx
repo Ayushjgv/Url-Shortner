@@ -101,6 +101,16 @@ export default function LandingPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+      setisAuthenticated(false);
+      setOpen(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="page-shell">
       <header className="site-header">
@@ -138,7 +148,7 @@ export default function LandingPage() {
               <hr />
 
               {isAuthenticated && (
-                <button className="flex w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50">
+                <button className="flex w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50" onClick={handleLogout}>
                   <LogOut size={18} />
                   Logout
                 </button>

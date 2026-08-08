@@ -8,7 +8,8 @@ import {
   MousePointerClick,
   RefreshCw,
   UserRound,
-  Home
+  Home,
+  LogOut
 } from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
 import api from '../utils/axios';
@@ -38,6 +39,16 @@ const UserDashboard = (props) => {
     getUserDetails();
 
   },[]);
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+      navigate("/login");
+    } catch (err) {
+      console.log(err);
+      setError("Failed to log out.");
+    }
+  };
 
   const urls = userDetails?.urls || [];
   const totalClicks = urls.reduce((total, url) => total + (url.clicks || 0), 0);
@@ -76,10 +87,16 @@ const UserDashboard = (props) => {
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-8 text-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-emerald-700 hover:text-emerald-800">
-          <Home size={20} />
-          <span>Back to Home</span>
-        </button>
+        <div className="mb-4 flex items-center justify-between">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2 font-medium text-emerald-700 hover:text-emerald-800">
+            <Home size={20} />
+            <span>Back to Home</span>
+          </button>
+          <button onClick={handleLogout} className="flex items-center gap-2 rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition">
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
         <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <div className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-emerald-700 text-lg font-black text-white">
