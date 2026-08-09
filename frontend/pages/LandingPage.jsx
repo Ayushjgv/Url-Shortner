@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import heroImg from "../src/assets/hero.png";
 import api from "../utils/axios";
 import "./landing.css";
-import { User, LayoutDashboard, Settings, LogOut} from "lucide-react";
+import { User, LayoutDashboard, Settings, LogOut, Sparkles, Link2, Globe, Check, Copy } from "lucide-react";
 
 export default function LandingPage() {
   const [url, setUrl] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -43,25 +44,53 @@ export default function LandingPage() {
     }
   };
 
-  const displayHost = useMemo(() => {
-    if (!shortUrl) return "short.link";
+  const domainHost = useMemo(() => {
+    return window.location.origin + "/";
+  }, []);
 
-    try {
-      return new URL(shortUrl).host;
-    } catch {
-      return shortUrl;
+  const displayHost = useMemo(() => {
+    if (shortUrl) {
+      try {
+        return new URL(shortUrl).host;
+      } catch {
+        return shortUrl;
+      }
     }
+    return window.location.host || "shortly.link";
   }, [shortUrl]);
+
+  const livePreviewText = useMemo(() => {
+    if (shortUrl) return shortUrl;
+    const trimmed = customSlug.trim();
+    if (trimmed) {
+      return `${domainHost}${trimmed}`;
+    }
+    return "Your generated link will appear here.";
+  }, [shortUrl, customSlug, domainHost]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const trimmedUrl = url.trim();
+    const trimmedSlug = customSlug.trim();
 
     if (!trimmedUrl) {
       setStatus("error");
       setMessage("Paste a URL before shortening it.");
       return;
+    }
+
+    if (trimmedSlug) {
+      if (trimmedSlug.length < 3 || trimmedSlug.length > 30) {
+        setStatus("error");
+        setMessage("Custom alias must be between 3 and 30 characters.");
+        return;
+      }
+      if (!/^[a-zA-Z0-9_-]+$/.test(trimmedSlug)) {
+        setStatus("error");
+        setMessage("Custom alias can only contain letters, numbers, hyphens, and underscores.");
+        return;
+      }
     }
 
     const authenticated = await ensureAuthenticated();
@@ -77,14 +106,18 @@ export default function LandingPage() {
     setCopied(false);
 
     try {
-      const response = await api.post("/create", { url: trimmedUrl});
+      const response = await api.post("/create", { 
+        url: trimmedUrl,
+        customSlug: trimmedSlug || undefined
+      });
 
       setShortUrl(response.data);
       setStatus("success");
-      setMessage("Your short link is ready.");
+      setMessage(trimmedSlug ? "Your custom short link is ready!" : "Your short link is ready.");
     } catch (error) {
       setStatus("error");
-      setMessage(error.message || "Something went wrong.");
+      const errorMsg = error.response?.data || error.message || "Something went wrong.";
+      setMessage(errorMsg);
     }
   };
 
@@ -167,40 +200,65 @@ export default function LandingPage() {
       <main className="app-shell">
         <section className="hero-section" id="shorten">
           <div className="hero-copy">
-            <p className="eyebrow">Fast URL shortener</p>
+            <p className="eyebrow">
+              <Sparkles size={14} className="inline mr-1" /> Fast & Custom URL Shortener
+            </p>
 
-            <h1>Turn long links into clean, shareable URLs.</h1>
+            <h1>Turn long links into clean, custom URLs.</h1>
 
             <p className="intro">
-              Paste any destination URL and your backend will generate a compact
-              redirect link.
+              Paste any destination URL and personalize your short link with a custom alias for memorable sharing.
             </p>
 
             <form className="shorten-form" onSubmit={handleSubmit}>
-              <label htmlFor="url">Destination URL</label>
-
-              <div className="input-row">
-                <input
-                  id="url"
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com"
-                  required
-                />
-
-                <button type="submit" disabled={status === "loading"}>
-                  {status === "loading" ? "Shortening..." : "Shorten URL"}
-                </button>
+              <div className="form-group">
+                <label htmlFor="url">
+                  <Link2 size={16} className="inline-icon" /> Destination URL
+                </label>
+                <div className="input-row">
+                  <input
+                    id="url"
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://example.com/very-long-destination-path"
+                    required
+                  />
+                </div>
               </div>
 
-              <p className={`status-message ${status}`}>{message}</p>
+              <div className="form-group custom-url-group">
+                <div className="label-with-badge">
+                  <label htmlFor="customSlug">
+                    <Sparkles size={16} className="inline-icon highlight-icon" /> Custom Link Alias
+                  </label>
+                  <span className="optional-badge">Optional</span>
+                </div>
+                <div className="custom-input-wrapper">
+                  <span className="domain-prefix">{domainHost}</span>
+                  <input
+                    id="customSlug"
+                    type="text"
+                    value={customSlug}
+                    onChange={(e) => setCustomSlug(e.target.value)}
+                    placeholder="e.g. my-custom-link"
+                    maxLength={30}
+                  />
+                </div>
+                <p className="field-hint">3-30 characters (letters, numbers, hyphens & underscores)</p>
+              </div>
+
+              <button type="submit" className="submit-btn" disabled={status === "loading"}>
+                {status === "loading" ? "Creating..." : "Shorten URL"}
+              </button>
+
+              {message && <p className={`status-message ${status}`}>{message}</p>}
             </form>
 
             {shortUrl && (
               <section className="result-panel">
                 <div>
-                  <span className="result-label">Short URL</span>
+                  <span className="result-label">Short URL Created</span>
 
                   <a href={shortUrl} target="_blank" rel="noreferrer">
                     {shortUrl}
@@ -208,7 +266,15 @@ export default function LandingPage() {
                 </div>
 
                 <button onClick={handleCopy} className="copy-button">
-                  {copied ? "Copied" : "Copy"}
+                  {copied ? (
+                    <>
+                      <Check size={16} className="inline mr-1" /> Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} className="inline mr-1" /> Copy
+                    </>
+                  )}
                 </button>
               </section>
             )}
@@ -225,11 +291,18 @@ export default function LandingPage() {
               </div>
 
               <div className="link-preview">
-                <span className="preview-label">Preview</span>
+                <div className="preview-header-row">
+                  <span className="preview-label">Live Preview</span>
+                  {customSlug.trim() && !shortUrl && (
+                    <span className="custom-active-badge">Custom Alias Active</span>
+                  )}
+                </div>
 
                 <strong>{displayHost}</strong>
 
-                <p>{shortUrl || "Your generated link will appear here."}</p>
+                <p className={customSlug.trim() && !shortUrl ? "custom-highlight-preview" : ""}>
+                  {livePreviewText}
+                </p>
               </div>
 
               <div className="metric-grid">
@@ -239,8 +312,8 @@ export default function LandingPage() {
                 </div>
 
                 <div>
-                  <span>API</span>
-                  <strong>Connected</strong>
+                  <span>Alias Mode</span>
+                  <strong>{customSlug.trim() ? "Custom Slug" : "Auto NanoID"}</strong>
                 </div>
               </div>
             </div>
