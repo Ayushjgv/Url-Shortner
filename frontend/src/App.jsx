@@ -5,6 +5,8 @@ import RegisterPage from "../pages/RegisterPage";
 import UserDashboard from "../pages/UserDashboard";
 import ProtectedRoute from "../pages/ProtectedRoute";
 import ResetPassword from "../pages/ResetPassword";
+import OTPVerify from "../pages/OTPVerify";
+import NewPassword from "../pages/NewPassword";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         </ProtectedRoute>
       } />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/otp-verify" element={<OTPVerify />} />
+      <Route path="/new-password" element={<NewPassword />} />
     </Routes>
   );
 }

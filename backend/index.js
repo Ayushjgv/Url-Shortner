@@ -20,6 +20,9 @@ import verifyUser from "./routes/auth.route.js";
 import getUserDetails from "./routes/getUserDetails.route.js";
 import logoutUser from "./routes/logout.routes.js";
 import resetPassword from "./routes/resetPassword.route.js";
+import OTPGenerate from "./routes/OTPGenerate.route.js";
+import OTPVerify from "./routes/otpVerify.route.js";
+
 
 
 const app = express();
@@ -49,7 +52,8 @@ app.use("/api/verifyUser", verifyUser);
 app.use("/api/getUserDetails", getUserDetails);
 app.use("/api/logout", logoutUser);
 app.use("/api/reset-password", resetPassword);
-
+app.use("/api/otp-generate", OTPGenerate);
+app.use("/api/otp-verify", OTPVerify);
 app.get("/:shortUrl", redirectFromShortUrl);
 
 
